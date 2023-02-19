@@ -23,6 +23,10 @@ def get_current_trains(message):
 
 @bot.message_handler(commands=["toWork"])
 def get_current_trains(message):
+    try:
+        _, period, type = message.text.split()
+    except ValueError as e:
+        bot.reply_to(message, "Your request is not clear...")
     logger.info("Got toWork request")
     answer = handle_get_current_trains("toWork")
     bot.reply_to(message, answer)

@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv(".dev.env")
 BOT_API_KEY = os.getenv("BOT_API_KEY")
-ISRAEL_TRAIN_API = "https://www.rail.co.il/apiinfo/api/infor/GetStationsInfor?stations=1400&stations=4600"
 
 logger = logging.getLogger("TrainLogger")
 bot = telebot.TeleBot(BOT_API_KEY)
@@ -24,10 +23,11 @@ def get_current_trains(message):
 @bot.message_handler(commands=["toWork"])
 def get_current_trains(message):
     try:
+        logger.info("Got toWork request")
         _, period, type = message.text.split()
     except ValueError as e:
+        logger.error(e)
         bot.reply_to(message, "Your request is not clear...")
-    logger.info("Got toWork request")
     answer = handle_get_current_trains("toWork")
     bot.reply_to(message, answer)
 

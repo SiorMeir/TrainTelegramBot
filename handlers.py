@@ -70,7 +70,7 @@ def convert_train_data_to_message(train_data):
     return message_string
 
 
-def handle_get_current_trains(mode, time_period):
+def handle_get_current_trains(mode):
     match mode:
         case "toWork":
             time = get_current_time()

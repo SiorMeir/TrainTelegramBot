@@ -1,9 +1,6 @@
 import datetime
 import requests
 
-STATIONS = {"home": 1400, "work": 4600}
-
-
 def get_current_time() -> dict:  # validated
     today = datetime.date.today()
     this_time = datetime.datetime.now()
@@ -12,7 +9,7 @@ def get_current_time() -> dict:  # validated
         "date": today.strftime("%Y%m%d"),
         "hour": this_time.strftime("%H%M"),
         "request_time": this_time,
-    }
+    } 
 
 
 def get_trains(from_id: str, to_id: str, time):

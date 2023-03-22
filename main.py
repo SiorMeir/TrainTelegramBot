@@ -22,14 +22,18 @@ def get_current_trains(message):
 
 @bot.message_handler(commands=["toWork"])
 def get_current_trains(message):
-    try:
-        logger.info("Got toWork request")
-        _, period, type = message.text.split()
-    except ValueError as e:
-        logger.error(e)
-        bot.reply_to(message, "Your request is not clear...")
-    answer = handle_get_current_trains("toWork")
-    bot.reply_to(message, answer)
+    command = message.text.split()
+    match len(command):
+        case 0: # ""
+            answer = "Didn't get any commands" # should not happen
+            bot.reply_to(message, "Didn't get any commands!") 
+        case 1: # "/toWork"
+            answer = handle_get_current_trains()
+        case 2: # "/toWork 5"
+            answer = handle_get_current_trains(time = command[1])
+        case 3: # "/toWork 5 hours"
+            answer = handle_get_current_trains(time = command[1] ,units= command[2])
+    bot.reply_to(message , answer)
 
 
 @bot.message_handler(commands=["toHome"])

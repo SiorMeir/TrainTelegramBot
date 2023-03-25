@@ -1,29 +1,43 @@
+import json
+import os
 import datetime
+from dotenv import load_dotenv
 import requests
+from stations import STATIONS
+
 
 def get_current_time() -> dict:  # validated
     today = datetime.date.today()
     this_time = datetime.datetime.now()
 
     return {
-        "date": today.strftime("%Y%m%d"),
-        "hour": this_time.strftime("%H%M"),
+        "date": today.strftime("%Y-%m-%d"),
+        "hour": this_time.strftime("%H:%M"),
         "request_time": this_time,
-    } 
+    }
 
 
-def get_trains(from_id: str, to_id: str, time):
+def get_trains(URL, from_id: str, to_id: str, time):
+    # URL = https://israelrail.azurefd.net/rjpa-prod/api/v1/timetable/searchTrainLuzForDateTime?fromStation=1400&toStation=4600&date=2023-03-22&hour=08:45&scheduleType=1&systemType=2&languageId=Hebrew
     try:
-        r = requests.get(
-            f"https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId={from_id}&TId={to_id}&Date={time['date']}&Hour={time['hour']}&isGoing=true"
-        )
+        params = {
+            "fromStation": from_id,
+            "toStation": to_id,
+            "date": time["date"],
+            "hour": time["hour"],
+            "scheduleType": 1,
+            "systemType": 2,
+            "languageId": "hebrew",
+        }
+        headers = {"ocp-apim-subscription-key": "4b0d355121fe4e0bb3d86e902efe9f20"}
+        r = requests.get(URL, params=params, headers=headers)
     except requests.HTTPError:
         return {"error": "Something went wrong with the API"}
     return r.json()
 
 
 def get_basic_train_info(train_payload):  # Validated. TODO: handle no trains available
-    trains_today_data = train_payload["Data"]["Routes"]
+    trains_today_data = train_payload["result"]["Routes"]
 
     trains = []
     for train in trains_today_data:
@@ -37,6 +51,23 @@ def get_basic_train_info(train_payload):  # Validated. TODO: handle no trains av
         )
 
     return trains
+
+
+def clean_payload(payload) -> list:
+    cleaned_trains_data = []
+    travels = payload["result"]["travels"]  # list of trains + metadata
+    for travel in travels:
+        cleaned_trains_data.append(
+            {
+                "departureTime": travel["DepartureTime"],
+                "arrivalTime": travel["arrivalTime"],
+            }
+        )
+    pass
+
+
+def create_time_window(requested_time, current_time):
+    pass
 
 
 def slice_relevant_trains(
@@ -56,7 +87,7 @@ def convert_station_to_id(station: str) -> int:
     return STATIONS[station]
 
 
-def convert_train_data_to_message(train_data):
+def convert_train_data_to_message(train_data) -> str:
     if len(train_data) == 0:
         return "There are no trains in the near time (Is it Shabat today?)"
     message_string = "The next trains from Home to Work are :\n"
@@ -67,30 +98,27 @@ def convert_train_data_to_message(train_data):
     return message_string
 
 
-def handle_get_current_trains(mode):
+def handle_get_current_trains(URL, mode: str, time=None, units=None) -> str:
     match mode:
         case "toWork":
             time = get_current_time()
-            payload = get_trains("1400", "4600", time=time)
+            payload = get_trains(URL, "1400", "4600", time=time)
             train_data = get_basic_train_info(payload)
             message = convert_train_data_to_message(train_data)
             return message
         case "toHome":
             time = get_current_time()
-            payload = get_trains("4600", "1400", time=time)
+            payload = get_trains(URL, "4600", "1400", time=time)
             train_data = get_basic_train_info(payload)
             message = convert_train_data_to_message(train_data)
             return message
 
 
 if __name__ == "__main__":
-    # r = requests.get(
-    #     "https://www.rail.co.il/apiinfo/api/Plan/GetRoutes?OId=1400&TId=4600&Date=20230129&Hour=1000&isGoing=true&c=1674968266239"
-    # )
-    # with open("example.json", "wb") as f:
-    #     for chunk in r.iter_content(chunk_size=128):
-    #         f.write(chunk)
-    time = get_current_time()
-    payload = get_trains("1400", "4600", time=time)
-    proccessed_payload = get_basic_train_info(payload)
-    print(proccessed_payload)
+    load_dotenv(".dev.env")
+    URL = os.getenv("URL")
+
+    trains = get_trains(URL, "1400", "4600", {"date": "2023-03-26", "hour": "08:00"})
+    with open("./example.json", "w") as filename:
+        filename.write(json.dumps(trains))
+    print(trains)

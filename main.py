@@ -2,7 +2,8 @@ import os
 import telebot
 import requests
 import logging
-from handlers import handle_get_current_trains
+from handlers import handle_command_options
+from logic import handle_get_current_trains
 import json
 from dotenv import load_dotenv
 
@@ -23,20 +24,9 @@ def get_current_trains(message):
 
 @bot.message_handler(commands=["toWork"])
 def get_current_trains(message):
-    command = message.text.split()
-    match len(command):
-        case 0:  # ""
-            answer = "Didn't get any commands"  # should not happen
-            bot.reply_to(message, "Didn't get any commands!")
-        case 1:  # "/toWork"
-            answer = handle_get_current_trains(URL, "toWork")
-        case 2:  # "/toWork 5"
-            answer = handle_get_current_trains(URL, "toWork", time=command[1])
-        case 3:  # "/toWork 5 hours"
-            answer = handle_get_current_trains(
-                URL, "toWork", time=command[1], units=command[2]
-            )
+    answer = handle_command_options(message)
     bot.reply_to(message, answer)
+    return answer
 
 
 @bot.message_handler(commands=["toHome"])

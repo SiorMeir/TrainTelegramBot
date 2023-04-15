@@ -4,14 +4,12 @@ import requests
 import logging
 from handlers import handle_command_options
 from logic import handle_get_current_trains
-import json
 from dotenv import load_dotenv
+from constants import BOT_API_KEY
+
 
 load_dotenv(".dev.env")
-BOT_API_KEY = os.getenv("BOT_API_KEY")
-URL = os.getenv("URL")
-
-logger = logging.getLogger("TrainLogger")
+logger = logging.getLogger(__name__)
 bot = telebot.TeleBot(BOT_API_KEY)
 
 
@@ -24,14 +22,15 @@ def get_current_trains(message):
 
 @bot.message_handler(commands=["toWork"])
 def get_current_trains(message):
-    answer = handle_command_options(message)
+    logger.info("Got toWork request")
+    answer = handle_command_options(message, mode="toWork")
     bot.reply_to(message, answer)
     return answer
 
 
 @bot.message_handler(commands=["toHome"])
 def get_current_trains(message):
-    logger.info("Got toWork request")
+    logger.info("Got toHome request")
     answer = handle_get_current_trains()
     bot.reply_to(message, answer)
 

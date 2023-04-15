@@ -1,4 +1,5 @@
 from logic import handle_get_current_trains
+from constants import URL
 
 
 def handle_command_options(message, mode):
@@ -6,7 +7,7 @@ def handle_command_options(message, mode):
     match len(command):
         case 0:  # ""
             answer = "Didn't get any commands"  # should not happen
-            bot.reply_to(message, "Didn't get any commands!")
+            # bot.reply_to(message, "Didn't get any commands!")
         case 1:  # "/toWork"
             answer = handle_get_current_trains(URL, mode)
         case 2:  # "/toWork 5"
@@ -15,3 +16,4 @@ def handle_command_options(message, mode):
             answer = handle_get_current_trains(
                 URL, mode, time=command[1], units=command[2]
             )
+    return answer

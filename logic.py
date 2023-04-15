@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import requests
 from stations import STATIONS
 
+URL = os.getenv("URL")
+
 
 def get_current_time() -> dict:  # validated
     today = datetime.date.today()
@@ -54,20 +56,20 @@ def create_time_window(clean_payload, requested_time, current_time):
 
 
 def slice_relevant_trains(
-    trains, request_time, time_period: int = None, max_trains: int = 3
+    trains, request_time: datetime, time_period: int = 3, max_trains: int = 3
 ):
     filtered_trains = []
     for train in trains:
-        if len(filtered_trains) > max_trains:
+        if len(filtered_trains) >= max_trains:
             break
-        # TODO: fix types
-        if train["DepartureTime"] <= request_time["request_time"] + time_period:
+            # TODO: fix types
+        parsed_train_time = datetime.datetime.strptime(
+            train["departureTime"], "%Y-%m-%dT%H:%M:%S"
+        )
+        time_delta = datetime.timedelta(hours=time_period)
+        if parsed_train_time - request_time <= time_delta:
             filtered_trains.append(train)
     return filtered_trains
-
-
-def convert_station_to_id(station: str) -> int:
-    return STATIONS[station]
 
 
 def convert_train_data_to_message(train_data) -> str:
@@ -81,18 +83,24 @@ def convert_train_data_to_message(train_data) -> str:
     return message_string
 
 
-def handle_get_current_trains(URL, mode: str, time=None, units=None) -> str:
+def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> str:
     match mode:
         case "toWork":
             time = get_current_time()
             payload = get_trains(URL, STATIONS["home"], STATIONS["work"], time=time)
             train_data = clean_payload(payload)
-            message = convert_train_data_to_message(train_data)
+            trains_in_time_window = slice_relevant_trains(
+                train_data, time["request_time"]
+            )
+            message = convert_train_data_to_message(trains_in_time_window)
             return message
         case "toHome":
             time = get_current_time()
             payload = get_trains(URL, STATIONS["work"], STATIONS["home"], time=time)
             train_data = clean_payload(payload)
+            trains_in_time_window = slice_relevant_trains(
+                train_data, time["request_time"]
+            )
             message = convert_train_data_to_message(train_data)
             return message
 

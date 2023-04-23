@@ -4,8 +4,7 @@ import datetime
 from dotenv import load_dotenv
 import requests
 from stations import STATIONS
-
-URL = os.getenv("URL")
+from constants import URL
 
 
 def get_current_time() -> dict:  # validated
@@ -46,13 +45,10 @@ def clean_payload(payload) -> list:
             {
                 "departureTime": travel["departureTime"],
                 "arrivalTime": travel["arrivalTime"],
+                # TODO: add more data from payload
             }
         )
     return cleaned_trains_data
-
-
-def create_time_window(clean_payload, requested_time, current_time):
-    pass
 
 
 def slice_relevant_trains(
@@ -62,10 +58,10 @@ def slice_relevant_trains(
     for train in trains:
         if len(filtered_trains) >= max_trains:
             break
-            # TODO: fix types
         parsed_train_time = datetime.datetime.strptime(
             train["departureTime"], "%Y-%m-%dT%H:%M:%S"
         )
+        # TODO: add different time units support
         time_delta = datetime.timedelta(hours=time_period)
         if parsed_train_time - request_time <= time_delta:
             filtered_trains.append(train)
@@ -75,7 +71,7 @@ def slice_relevant_trains(
 def convert_train_data_to_message(train_data) -> str:
     if len(train_data) == 0:
         return "There are no trains in the near time (Is it Shabat today?)"
-    message_string = "The next trains from Home to Work are :\n"
+    message_string = "The next trains are :\n"
     for train in train_data:
         message = f"Departure : {train['departureTime']}\n"
         message_string += message
@@ -106,8 +102,8 @@ def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> st
 
 
 if __name__ == "__main__":
-    load_dotenv(".dev.env")
-    URL = os.getenv("URL")
+    # load_dotenv(".dev.env")
+    # URL = os.getenv("URL")
 
     # trains = get_trains(URL, "1400", "4600", {"date": "2023-03-26", "hour": "08:00"})
     # with open("./example.json", "w") as filename:

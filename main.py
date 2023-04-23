@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from constants import BOT_API_KEY
 
 
-load_dotenv(".dev.env")
+# load_dotenv(".dev.env")
 logger = logging.getLogger(__name__)
 bot = telebot.TeleBot(BOT_API_KEY)
 

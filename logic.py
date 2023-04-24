@@ -3,7 +3,7 @@ import os
 import datetime
 from dotenv import load_dotenv
 import requests
-from stations import STATIONS
+from constants import STATIONS
 from constants import URL
 
 
@@ -52,7 +52,7 @@ def clean_payload(payload) -> list:
 
 
 def slice_relevant_trains(
-    trains, request_time: datetime, time_period: int = 3, max_trains: int = 3
+    trains, request_time: datetime, time_period: int = 3,period_units : str = "hours", max_trains: int = 3
 ):
     filtered_trains = []
     for train in trains:
@@ -63,6 +63,15 @@ def slice_relevant_trains(
         )
         # TODO: add different time units support
         time_delta = datetime.timedelta(hours=time_period)
+        match period_units:
+            case "hours":
+                pass
+            case "minutes":
+                pass
+            case "seconds": # this is dumnb
+                pass
+            case default: # if we can't read the units, resort to hours
+                pass
         if parsed_train_time - request_time <= time_delta:
             filtered_trains.append(train)
     return filtered_trains
@@ -81,7 +90,7 @@ def convert_train_data_to_message(train_data) -> str:
 
 def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> str:
     match mode:
-        case "toWork":
+        case "toWork": # TODO: this can be decoupled - don't hardcode stations to get_trains
             time = get_current_time()
             payload = get_trains(URL, STATIONS["home"], STATIONS["work"], time=time)
             train_data = clean_payload(payload)

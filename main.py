@@ -4,11 +4,9 @@ import requests
 import logging
 from handlers import handle_command_options
 from logic import handle_get_current_trains
-from dotenv import load_dotenv
 from constants import BOT_API_KEY
 
 
-# load_dotenv(".dev.env")
 logger = logging.getLogger(__name__)
 bot = telebot.TeleBot(BOT_API_KEY)
 

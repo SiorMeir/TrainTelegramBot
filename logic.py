@@ -30,7 +30,9 @@ def get_trains(URL, from_id: str, to_id: str, time):
             "systemType": 2,
             "languageId": "hebrew",
         }
-        headers = {"ocp-apim-subscription-key": "4b0d355121fe4e0bb3d86e902efe9f20"} # this is hard coded to the API. seems like a bad practice
+        headers = {
+            "ocp-apim-subscription-key": "4b0d355121fe4e0bb3d86e902efe9f20"
+        }  # this is hard coded to the API. seems like a bad practice
         r = requests.get(URL, params=params, headers=headers)
     except requests.HTTPError:
         return {"error": "Something went wrong with the API"}
@@ -54,7 +56,11 @@ def clean_payload(payload) -> list:
 
 
 def slice_relevant_trains(
-    trains, request_time: datetime, time_period: int = 3,period_units : str = "hours", max_trains: int = 3
+    trains,
+    request_time: datetime,
+    time_period: int = 3,
+    period_units: str = "hours",
+    max_trains: int = 3,
 ):
     filtered_trains = []
     for train in trains:
@@ -67,13 +73,29 @@ def slice_relevant_trains(
         match period_units:
             case "hours":
                 time_delta = datetime.timedelta(hours=time_period)
-                matchcase = parsed_train_time - request_time <= time_delta
+                train_time_diff: datetime.timedelta = parsed_train_time - request_time
+                matchcase = (
+                    train_time_diff <= time_delta
+                    and train_time_diff.total_seconds() > 0
+                )
             case "minutes":
                 time_delta = datetime.timedelta(minutes=time_period)
-                matchcase = parsed_train_time*60 - request_time <= time_delta
-            case "seconds": # this is dumb
+                train_time_diff: datetime.timedelta = (
+                    parsed_train_time * 60 - request_time
+                )
+                matchcase = (
+                    train_time_diff <= time_delta
+                    and train_time_diff.total_seconds() > 0
+                )
+            case "seconds":  # this is dumb
                 time_delta = datetime.timedelta(seconds=time_period)
-                matchcase = parsed_train_time*3600 - request_time <= time_delta
+                train_time_diff: datetime.timedelta = (
+                    parsed_train_time * 3600 - request_time
+                )
+                matchcase = (
+                    train_time_diff <= time_delta
+                    and train_time_diff.total_seconds() > 0
+                )
             case _:
                 pass
         if matchcase:
@@ -94,7 +116,7 @@ def convert_train_data_to_message(train_data) -> str:
 
 def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> str:
     match mode:
-        case "toWork": # TODO: this can be decoupled - don't hardcode stations to get_trains
+        case "toWork":  # TODO: this can be decoupled - don't hardcode stations to get_trains
             time = get_current_time()
             payload = get_trains(URL, STATIONS["home"], STATIONS["work"], time=time)
             if "error" in payload:

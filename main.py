@@ -6,7 +6,7 @@ from handlers import handle_command_options
 from logic import handle_get_current_trains
 from constants import BOT_API_KEY
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 bot = telebot.TeleBot(BOT_API_KEY)

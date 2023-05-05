@@ -2,7 +2,13 @@ version: '3.4'
 
 services:
   traintelegrambot:
-    image: traintelegrambot
+    image: traintelegrambot:latest
+    environment:
+      - ENV=development
+    env_file: 
+      - ./.dev.env
     build:
       context: .
       dockerfile: ./Dockerfile
+      tags:
+        - latest

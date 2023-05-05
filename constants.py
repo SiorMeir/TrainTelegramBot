@@ -11,4 +11,3 @@ BOT_API_KEY = os.getenv("BOT_API_KEY")
 URL = os.getenv("URL")
 
 STATIONS = {"home": 1400, "work": 4600}
-

@@ -30,7 +30,7 @@ def get_trains(URL, from_id: str, to_id: str, time):
             "systemType": 2,
             "languageId": "hebrew",
         }
-        headers = {"ocp-apim-subscription-key": "4b0d355121fe4e0bb3d86e902efe9f20"}
+        headers = {"ocp-apim-subscription-key": "4b0d355121fe4e0bb3d86e902efe9f20"} # this is hard coded to the API. seems like a bad practice
         r = requests.get(URL, params=params, headers=headers)
     except requests.HTTPError:
         return {"error": "Something went wrong with the API"}
@@ -38,6 +38,8 @@ def get_trains(URL, from_id: str, to_id: str, time):
 
 
 def clean_payload(payload) -> list:
+    if "error" in payload:
+        return payload
     cleaned_trains_data = []
     travels = payload["result"]["travels"]  # list of trains + metadata
     for travel in travels:
@@ -61,18 +63,20 @@ def slice_relevant_trains(
         parsed_train_time = datetime.datetime.strptime(
             train["departureTime"], "%Y-%m-%dT%H:%M:%S"
         )
-        # TODO: add different time units support
-        time_delta = datetime.timedelta(hours=time_period)
+        matchcase = None
         match period_units:
             case "hours":
-                pass
+                time_delta = datetime.timedelta(hours=time_period)
+                matchcase = parsed_train_time - request_time <= time_delta
             case "minutes":
+                time_delta = datetime.timedelta(minutes=time_period)
+                matchcase = parsed_train_time*60 - request_time <= time_delta
+            case "seconds": # this is dumb
+                time_delta = datetime.timedelta(seconds=time_period)
+                matchcase = parsed_train_time*3600 - request_time <= time_delta
+            case _:
                 pass
-            case "seconds": # this is dumnb
-                pass
-            case default: # if we can't read the units, resort to hours
-                pass
-        if parsed_train_time - request_time <= time_delta:
+        if matchcase:
             filtered_trains.append(train)
     return filtered_trains
 
@@ -93,6 +97,8 @@ def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> st
         case "toWork": # TODO: this can be decoupled - don't hardcode stations to get_trains
             time = get_current_time()
             payload = get_trains(URL, STATIONS["home"], STATIONS["work"], time=time)
+            if "error" in payload:
+                return payload["error"]
             train_data = clean_payload(payload)
             trains_in_time_window = slice_relevant_trains(
                 train_data, time["request_time"]
@@ -102,6 +108,8 @@ def handle_get_current_trains(URL, mode: str, time_slice=None, units=None) -> st
         case "toHome":
             time = get_current_time()
             payload = get_trains(URL, STATIONS["work"], STATIONS["home"], time=time)
+            if "error" in payload:
+                return payload["error"]
             train_data = clean_payload(payload)
             trains_in_time_window = slice_relevant_trains(
                 train_data, time["request_time"]

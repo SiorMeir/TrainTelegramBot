@@ -24,7 +24,9 @@ def get_trains(URL, from_id: str, to_id: str, time):
         params = {
             "fromStation": from_id,
             "toStation": to_id,
-            "date": time["date"],
+            "date": time[
+                "date"
+            ],  # TODO: logic fault. how can I search trains for tommorow?
             "hour": time["hour"],
             "scheduleType": 1,
             "systemType": 2,
@@ -108,7 +110,8 @@ def convert_train_data_to_message(train_data) -> str:
         return "There are no trains in the near time (Is it Shabat today?)"
     message_string = "The next trains are :\n"
     for train in train_data:
-        message = f"Departure : {train['departureTime']}\n"
+        departure = train["departureTime"].split("T")[1][:-3]
+        message = f"Departure : {departure}\n"
         message_string += message
 
     return message_string

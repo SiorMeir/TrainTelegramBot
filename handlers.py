@@ -10,9 +10,9 @@ def handle_command_options(message, mode):
         case 1:  # "/toWork"
             answer = handle_get_current_trains(URL, mode)
         case 2:  # "/toWork 5"
-            answer = handle_get_current_trains(URL, mode, time=command[1])
+            answer = handle_get_current_trains(URL, mode, time_slice=command[1])
         case 3:  # "/toWork 5 hours"
             answer = handle_get_current_trains(
-                URL, mode, time=command[1], units=command[2]
+                URL, mode, time_slice=command[1], units=command[2]
             )
     return answer

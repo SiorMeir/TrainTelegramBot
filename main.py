@@ -1,10 +1,11 @@
 import os
 import telebot
+from telebot import types
 import requests
 import logging
 from handlers import handle_command_options
 from logic import handle_get_current_trains
-from constants import BOT_API_KEY
+from constants import BOT_API_KEY, AVAILABLE_STATIONS
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -24,15 +25,20 @@ def get_current_trains(message):
 
 @bot.message_handler(commands=["setHome"])
 def get_current_trains(message):
-    logger.info("Got toWork request")
-    answer = handle_command_options(message, mode="toWork")
-    bot.reply_to(message, answer)
-    return answer
+    logger.info("Got set home station request")
+    markup = types.InlineKeyboardMarkup()
+    for station in AVAILABLE_STATIONS:
+        item = types.InlineKeyboardButton(
+            text=station["name"], callback_data=station["id"]
+        )
+        markup.add(item)
+    bot.send_message(message.chat.id, "Choose an option:", reply_markup=markup)
+    # return
 
 
 @bot.message_handler(commands=["setWork"])
 def get_current_trains(message):
-    logger.info("Got toWork request")
+    logger.info("Got work station request")
     answer = handle_command_options(message, mode="toWork")
     bot.reply_to(message, answer)
     return answer

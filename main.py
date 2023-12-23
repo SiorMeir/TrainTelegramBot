@@ -29,7 +29,7 @@ def get_current_trains(message):
     markup = types.InlineKeyboardMarkup()
     for station in AVAILABLE_STATIONS:
         item = types.InlineKeyboardButton(
-            text=station["name"], callback_data=station["id"]
+            text=station["stationName"], callback_data=station["stationId"]
         )
         markup.add(item)
     bot.send_message(message.chat.id, "Choose an option:", reply_markup=markup)
